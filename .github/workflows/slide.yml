@@ -1,7 +1,16 @@
 name: marp-github-actions
-on: [push]
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
-  marp-to-pdf:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,7 +27,28 @@ jobs:
               --${{steps.config.outputs.FORMAT}}
               -o dist/output_slide.${{steps.config.outputs.FORMAT}}
               --allow-local-files
-      - uses: actions/upload-artifact@v4
+      - name: Rename HTML file to index.html for GitHub Pages
+        if: steps.config.outputs.FORMAT == 'html'
+        run: mv dist/output_slide.html dist/index.html
+      - name: Upload artifact for download
+        uses: actions/upload-artifact@v4
         with:
           name: output_slide
-          path: dist/output_slide.${{steps.config.outputs.FORMAT}}
+          path: dist/
+      - name: Upload artifact for GitHub Pages
+        if: steps.config.outputs.FORMAT == 'html'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
