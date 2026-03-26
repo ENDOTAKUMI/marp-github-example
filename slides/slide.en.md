@@ -62,7 +62,7 @@ style: |
 ## Test Pyramid
 <!-- テストピラミッド：効率的なテスト戦略 -->
 
-![Test Pyramid](../image/001.png)
+![Test Pyramid](image/001.png)
 
 ### Three Layers of Testing
 

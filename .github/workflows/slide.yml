@@ -14,29 +14,124 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: sudo apt-get update && sudo apt-get install jq
-      - run: |
-          directory=$(cat config.json | jq -r .directory)
-          output_format=$(cat config.json | jq -r .output_format)
-          echo "DIR=${directory}" >> $GITHUB_OUTPUT
-          echo "FORMAT=${output_format}" >> $GITHUB_OUTPUT
-        id: config
       - run: mkdir -p dist && chmod 777 dist
-      - run: docker run --rm --init -v "$(pwd):/home/marp/app/"
-              -e LANG="ja_JP.UTF-8" marpteam/marp-cli ${{steps.config.outputs.DIR}}/slide.md
-              --${{steps.config.outputs.FORMAT}}
-              -o dist/output_slide.${{steps.config.outputs.FORMAT}}
+
+      - name: Copy images to dist directory
+        run: cp -r image dist/
+
+      - name: Build Japanese slide
+        run: docker run --rm --init -v "$(pwd):/home/marp/app/"
+              -e LANG="ja_JP.UTF-8" marpteam/marp-cli slides/slide.ja.md
+              --html
+              -o dist/ja.html
               --allow-local-files
-      - name: Rename HTML file to index.html for GitHub Pages
-        if: steps.config.outputs.FORMAT == 'html'
-        run: mv dist/output_slide.html dist/index.html
+
+      - name: Build English slide
+        run: docker run --rm --init -v "$(pwd):/home/marp/app/"
+              -e LANG="ja_JP.UTF-8" marpteam/marp-cli slides/slide.en.md
+              --html
+              -o dist/en.html
+              --allow-local-files
+
+      - name: Create index page
+        run: |
+          cat > dist/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>Flutter Testing Slides</title>
+              <style>
+                  body {
+                      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                      max-width: 800px;
+                      margin: 0 auto;
+                      padding: 40px 20px;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      min-height: 100vh;
+                      display: flex;
+                      align-items: center;
+                      justify-content: center;
+                  }
+                  .container {
+                      background: white;
+                      border-radius: 12px;
+                      padding: 40px;
+                      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+                  }
+                  h1 {
+                      color: #333;
+                      margin-bottom: 10px;
+                  }
+                  p {
+                      color: #666;
+                      margin-bottom: 30px;
+                  }
+                  .slides {
+                      display: flex;
+                      gap: 20px;
+                      flex-wrap: wrap;
+                  }
+                  .slide-link {
+                      flex: 1;
+                      min-width: 200px;
+                      padding: 30px;
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      color: white;
+                      text-decoration: none;
+                      border-radius: 8px;
+                      text-align: center;
+                      transition: transform 0.2s, box-shadow 0.2s;
+                      display: block;
+                  }
+                  .slide-link:hover {
+                      transform: translateY(-5px);
+                      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                  }
+                  .slide-link .flag {
+                      font-size: 48px;
+                      margin-bottom: 10px;
+                  }
+                  .slide-link .title {
+                      font-size: 20px;
+                      font-weight: bold;
+                      margin-bottom: 5px;
+                  }
+                  .slide-link .subtitle {
+                      font-size: 14px;
+                      opacity: 0.9;
+                  }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>Flutter Testing Slides</h1>
+                  <p>Choose your preferred language / 言語を選択してください</p>
+                  <div class="slides">
+                      <a href="ja.html" class="slide-link">
+                          <div class="flag">🇯🇵</div>
+                          <div class="title">日本語</div>
+                          <div class="subtitle">Japanese</div>
+                      </a>
+                      <a href="en.html" class="slide-link">
+                          <div class="flag">🇺🇸</div>
+                          <div class="title">English</div>
+                          <div class="subtitle">英語</div>
+                      </a>
+                  </div>
+              </div>
+          </body>
+          </html>
+          EOF
+
       - name: Upload artifact for download
         uses: actions/upload-artifact@v4
         with:
-          name: output_slide
+          name: slides
           path: dist/
+
       - name: Upload artifact for GitHub Pages
-        if: steps.config.outputs.FORMAT == 'html'
         uses: actions/upload-pages-artifact@v3
         with:
           path: dist/
