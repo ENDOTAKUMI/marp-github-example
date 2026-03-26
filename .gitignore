@@ -1,6 +1,4 @@
 .DS_Store
 
 # Generated slide files
-output_slide.pdf
-output_slide.html
-output_slide.pptx
+dist/

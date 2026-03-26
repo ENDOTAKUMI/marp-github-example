@@ -12,12 +12,13 @@ jobs:
           echo "DIR=${directory}" >> $GITHUB_OUTPUT
           echo "FORMAT=${output_format}" >> $GITHUB_OUTPUT
         id: config
-      - run: docker run --rm -u root --init -v "$(pwd):/home/marp/app/"
+      - run: mkdir -p dist
+      - run: docker run --rm --init -v "$(pwd):/home/marp/app/"
               -e LANG="ja_JP.UTF-8" marpteam/marp-cli ${{steps.config.outputs.DIR}}/slide.md
               --${{steps.config.outputs.FORMAT}}
-              -o output_slide.${{steps.config.outputs.FORMAT}}
+              -o dist/output_slide.${{steps.config.outputs.FORMAT}}
               --allow-local-files
       - uses: actions/upload-artifact@v4
         with:
           name: output_slide
-          path: output_slide.${{steps.config.outputs.FORMAT}}
+          path: dist/output_slide.${{steps.config.outputs.FORMAT}}
