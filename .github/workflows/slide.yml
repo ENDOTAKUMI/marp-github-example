@@ -17,7 +17,7 @@ jobs:
       - run: mkdir -p dist && chmod 777 dist
 
       - name: Copy images to dist directory
-        run: cp -r image dist/
+        run: cp -r slides/image dist/
 
       - name: Build Japanese slide
         run: docker run --rm --init -v "$(pwd):/home/marp/app/"
