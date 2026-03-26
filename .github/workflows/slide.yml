@@ -4,7 +4,7 @@ jobs:
   marp-to-pdf:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install jq
       - run: |
           directory=$(cat config.json | jq -r .directory)
@@ -17,7 +17,7 @@ jobs:
               --${{steps.config.outputs.FORMAT}}
               -o ${{steps.config.outputs.DIR}}.${{steps.config.outputs.FORMAT}}
               --allow-local-files
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: output_slide
           path: ${{steps.config.outputs.DIR}}.${{steps.config.outputs.FORMAT}}
