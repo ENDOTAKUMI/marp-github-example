@@ -12,7 +12,7 @@ jobs:
           echo "DIR=${directory}" >> $GITHUB_OUTPUT
           echo "FORMAT=${output_format}" >> $GITHUB_OUTPUT
         id: config
-      - run: mkdir -p dist
+      - run: mkdir -p dist && chmod 777 dist
       - run: docker run --rm --init -v "$(pwd):/home/marp/app/"
               -e LANG="ja_JP.UTF-8" marpteam/marp-cli ${{steps.config.outputs.DIR}}/slide.md
               --${{steps.config.outputs.FORMAT}}
